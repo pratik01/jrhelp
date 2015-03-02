@@ -1,0 +1,2 @@
+module OasisPagesHelper
+end

@@ -1,0 +1,13 @@
+<%
+    @article = Article.all
+%>
+<select class="form-control" id="article_id">
+  <option></option>
+  <%
+    @article.each do |a|
+    %>
+       <option value="<%= a.id %>"><%= a.title %></option>
+    <%
+    end
+  %>
+</select>

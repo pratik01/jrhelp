@@ -1,0 +1,15 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Name:</b>
+  <%= @oasis_page.name %>
+</p>
+
+<p>
+  <b>Description:</b>
+  <%= @oasis_page.description %>
+</p>
+
+
+<%= link_to 'Edit', edit_oasis_page_path(@oasis_page) %> |
+<%= link_to 'Back', oasis_pages_path %>

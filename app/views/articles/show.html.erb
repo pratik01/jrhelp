@@ -1,0 +1,217 @@
+<!--<style>-->
+  <!--/*.sceditor-container{*/-->
+      <!--/*width:100% !important;*/-->
+  <!--/*}*/-->
+<!--</style>-->
+<div class="container">
+  <div class="row">
+    <ul class="nav nav-tabs">
+      <li role="presentation" class="article tab"><a href="#">Article Details</a></li>
+      <li role="presentation" class="step tab"><a href="#" id="step_data">Notes</a></li>
+      <li role="presentation" class="comments tab"><a href="#" id="step_data">Comments</a></li>
+    </ul>
+  </div>
+  <p id="notice"><%= notice %></p>
+  <div style="clear: both;height: 20px;"></div>
+  <div class="row" id="article">
+    <p>
+      <%= image_tag @article.image_url.to_s %>
+    </p>
+    <p>
+      <b>Title:</b>
+      <%= @article.title %>
+    </p>
+    <p>
+      <b>Description:</b>
+      <%= @article.description %>
+    </p>
+    <%= link_to 'Edit', edit_article_path(@article) %> |
+    <%= link_to 'Back', articles_path %>
+  </div>
+  <div class="row" id="step" style="display: none;">
+       <%
+            @step.each do |s|
+            %>
+              <%= s.description.html_safe %>
+            <%
+            end
+       %>
+  </div>
+  <div class="row" id="comments">
+    <div class="row">
+    <%
+        if !@comments.nil? && !@comments.blank?
+            index = 1
+            @comments.each do |c|
+              if c.flag == "1"
+        %>
+                <div class="col-md-10">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <%
+                            @user = User.find(c.user_id)
+                      %>
+                      <%= @user.email %> Comment On <%= c.created_at %>
+                    </div>
+                    <div class="panel-body">
+                      <div class="row" style="padding:10px;">
+                        <%= c.description.html_safe %>
+                      </div>
+                      <%
+                         if user_signed_in?
+                      %>
+                      <div class="row" style="padding:10px;">
+                        <button class="btn reply_comment" id="btnreply_<%= index.to_s %>">Reply</button>
+                      </div>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+                <%
+                    @replies = Comment.where("comment_id=? && article_id=?",c.id,@article.id)
+                    if !@replies.nil? && !@replies.blank?
+                       @replies.each do |r|
+                       %>
+                        <div class="pull-right col-md-10">
+                          <div class="panel panel-default">
+                            <div class="panel-heading">
+                              <%
+                                 @user = User.find(r.reply_by)
+                              %>
+                              <%= @user.email %> Comment On <%= r.created_at %>
+                            </div>
+                            <div class="panel-body">
+                              <div class="row" style="padding:10px;">
+                                <%= r.description.html_safe %>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                       <%
+                       end
+                    end
+                %>
+                <div class="pull-right col-md-10 reply" id="reply_<%= index.to_s %>">
+                  <form action="/reply_comments" class="form-horizontal" data-remote="true" method="post">
+                    <div class="row" style="padding: 10px;">
+                      <textarea name="description" style="height:200px;width:100% !important;"></textarea>
+                      <input type="hidden" name="flag" value="0">
+                      <input type="hidden" name="user_id" value="<%= c.user_id %>">
+                      <input type="hidden" name="id" value="<%= c.id %>">
+                      <input type="hidden" name="article_id" value="<%= @article.id %>">
+                    </div>
+                    <div class="row" style="padding: 10px;">
+                      <button type="submit" class="btn">Save</button>
+                      <button type="reset" class="btn cancel">Cancel</button>
+                    </div>
+                  </form>
+                </div>
+        <%
+                    index = index + 1
+                else
+                %>
+                <div class="pull-right col-md-10">
+                  <div class="panel panel-default">
+                    <div class="panel-heading">
+                      <%
+                         @user = User.find(c.user_id)
+                      %>
+                      <%= @user.email %>
+                    </div>
+                    <div class="panel-body">
+                      <div class="row" style="padding:10px;">
+                        <%= c.description.html_safe %>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+
+                <%
+                end
+           end
+        end
+    %>
+    </div>
+    <div class="row">
+    <%
+        if user_signed_in?
+        %>
+            <%= form_for @comment,:remote=>true,:html=>{:class=>"form-horizontal"} do |f| %>
+                <div class="col-md-10">
+                  <div class="row" style="padding:10px;">
+                    <%= f.text_area :description,:style=>"height:200px;width:100% !important;" %>
+                    <input type="hidden" name="article_id" value="<%= @article.id %>">
+                    <%= f.hidden_field :article_id , :value => @article.id %>
+                  </div>
+                  <%= f.hidden_field :flag, :value=>"1" %>
+                  <div class="row" style="padding:10px;">
+                    <button type="submit" class="btn">Save</button>
+                  </div>
+                </div>
+            <% end %>
+        <%
+        else
+        %>
+           <a href="/users/sign_in">New Comment</a>
+        <%
+        end
+    %>
+    </div>
+  </div>
+  <div style="clear: both;height: 20px;"></div>
+
+</div>
+<script>
+    $(function() {
+        $('textarea[name="comment[description]"]').sceditor({
+            plugins: "bbcode",
+            emoticonsEnabled: false,
+            emoticonsCompat: false,
+            style: "/assets/jquery.sceditor.default.min.css"
+        });
+        $('textarea[name="description"]').sceditor({
+            plugins: "bbcode",
+            emoticonsEnabled: false,
+            emoticonsCompat: false,
+            style: "/assets/jquery.sceditor.default.min.css"
+        });
+        $(".reply").hide();
+
+
+        $(".reply_comment").click(function(){
+             var id = this.id
+             var new_id = id.split("_");
+             $("#reply_"+new_id[1]).show();
+        });
+
+        $(".cancel").click(function(){
+           $(".reply").hide();
+        });
+        $("#comments").hide();
+    });
+  $(".tab").click(function(){
+      if($(this).hasClass("article")){
+         $("#article").show();
+          $("#step").hide();
+          $("#comments").hide();
+      } else if($(this).hasClass("step")){
+          $("#article").hide();
+          $("#step").show();
+          $("#comments").hide();
+      } else if($(this).hasClass("comments")){
+          $("#comments").show();
+          $("#article").hide();
+          $("#step").hide();
+      }
+      $(this).addClass("active");
+      $(".tab").each(function(){
+          if($(this).hasClass("active")){
+              $(this).removeClass("active");
+          }
+      });
+      //alert($(this).hasClass("active"));
+  });
+
+</script>
+

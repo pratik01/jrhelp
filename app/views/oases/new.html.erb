@@ -1,0 +1,230 @@
+<script>
+    $(function() {
+        // Replace all textarea's
+        // with SCEditor
+        $('textarea[name="format_desc"]').sceditor({
+            plugins: "bbcode",
+            emoticonsEnabled: false,
+            emoticonsCompat: false,
+            style: "/assets/jquery.sceditor.default.min.css"
+        });
+
+        $('textarea[name="format_desc"]').sceditor('instance').val('Hello <strong>World!</strong>', false);
+        $('textarea[name="format_desc"]').sceditor('instance').keyUp(function(e) {
+
+        });
+    });
+</script>
+<div class="container">
+  <div class="col-md-12">
+    <%= form_for(@oase,:remote => true,:html=>{:class=>"form-horizontal"}) do |f| %>
+        <%= f.hidden_field :id ,:id=>"id" %>
+
+        <div class="form-group">
+          <label for="firstname">Page</label>
+          <div>
+            <div class="col-sm-10" style="padding-left: 0px !important;">
+              <!--<%= render :partial => "application/select_article",:locals => {:o => f} %>-->
+              <%= collection_select(:oasis, :page_id, OasisPage.all, :id, :name, {prompt: true},{:class=>'form-control'}) %>
+            </div>
+            <div class="col-sm-2">
+              <a href="javascript:void(0);" id="add_article" class="btn btn-default">+</a>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <div>
+            <div>
+              <textarea name="format_desc" id="new_description" style="height:400px;width:100%" onkeyup="previewData(this.value);"></textarea>
+              <%= f.hidden_field :description ,:id=>"desc" %>
+            </div>
+          </div>
+        </div>
+        <hr>
+        <button type="button" id="view_preview" class="btn btn-default">View Preview</button>
+        <button type="submit" class="btn btn-primary" id="save_step">Save</button>
+        <%= link_to 'Back', oases_path,:class => "btn btn-default" %>
+    <% end %>
+  </div>
+
+  <div id="preview_modal" class="modal fade">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">Preview Data</h4>
+        </div>
+        <div class="modal-body" id="previewbody">
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="myModal" class="modal fade">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title">Add Article</h4>
+        </div>
+        <div class="modal-body">
+          <% @page = OasisPage.new %>
+          <%= form_for(@page,:remote => true ,:html=>{:class=>"form-horizontal"}) do |f| %>
+              <div class="form-group">
+                <label class="control-label col-sm-2">Name</label>
+                <div class="col-sm-10">
+                  <%= f.text_field :name,:class=>"form-control" %>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="control-label col-sm-2">Description</label>
+                <div class="col-sm-10">
+                  <%= f.text_area :description,:class=>"form-control" %>
+                </div>
+              </div>
+              <div class="form-group modal-footer">
+                <div class="col-sm-offset-2 col-sm-10">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+          <% end %>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $("#add_article").click(function(){
+            $("#myModal").modal('show');
+        });
+        $("#view_preview").click(function(){
+            $('textarea[name="format_desc"]').sceditor('instance').sourceMode(true);
+            var val = $('textarea[name="format_desc"]').sceditor('instance').getSourceEditorValue(true);
+            $('textarea[name="format_desc"]').sceditor('instance').sourceMode(false);
+            $("#preview_modal").modal('show');
+            $("#previewbody").html(val);
+        });
+    });
+    $("#add_desc").click(function(){
+        var id = parseInt($("#count_desc").val());
+        var data = '<div class="form-group" id="desc_'+id+'">';
+        data += '<label for="firstname" class="col-sm-2 control-label"></label>';
+        data += '<div class="col-sm-8"><textarea id="tadesc_'+id+'" class="form-control step_data description" onkeyup="previewDesc(this.id,this.value);"></textarea></div>';
+        data += '<div class="col-sm-2"><a href="javascript:void(0);" onclick="removeDesc('+id+');" class="btn btn-default">X</a></div></div>';
+        $("#step_data").append(data);
+        id = id + 1
+        $("#count_desc").val(id);
+    });
+    function removeDesc(id){
+        $("#desc_"+id).remove();
+    }
+    $("#add_step").click(function(){
+        var id = parseInt($("#count_step").val());
+        var data = '<div class="form-group" id="step_'+id+'">';
+        data += '<label for="firstname" class="col-sm-2 control-label"></label>';
+        data += '<div class="col-sm-8"><textarea id="tastep_'+id+'" class="form-control step_data step" onkeyup="previewStep(this.id,this.value);"></textarea></div>';
+        data += '<div class="col-sm-2"><a href="javascript:void(0);" onclick="removeStep('+id+');" class="btn btn-danger">X</a></div></div>';
+        $("#step_data").append(data);
+        id = id + 1
+        $("#count_step").val(id);
+    });
+    function removeStep(id){
+        $("#step_"+id).remove();
+    }
+    function previewDesc(id,val){
+        var id_num = id.split("_");
+        var new_id = "previewDesc_"+id_num[1]+"";
+        console.log(new_id);
+        if ($("#"+new_id).length>0){
+            $("#"+new_id).html(val);
+        }else{
+            var data = '<div id="'+new_id+'">'+val+'</div>';
+            $("#preview").append(data);
+        }
+    }
+    function previewStep(id,val){
+        var id_num = id.split("_");
+        var new_id = "previewStep_"+id_num[1]+"";
+        console.log(new_id);
+        if ($("#"+new_id).length>0){
+            $("#"+new_id).html("<pre>"+val+"</pre>");
+        }else{
+            var data = '<div id="'+new_id+'"><pre>'+val+'</pre></div>';
+            $("#preview").append(data);
+        }
+    }
+    $("#article_id").change(function(){
+        var val = $("#article_id option:selected").text();
+        var data = '<h3 style="margin: 0px !important;"><a href="javascript:void(0);">'+val+'<a></h3>';
+        $("#article_name").html(data);
+    });
+    $("#save_step").click(function(){
+        $('textarea[name="format_desc"]').sceditor('instance').sourceMode(true);
+        var val = $('textarea[name="format_desc"]').sceditor('instance').getSourceEditorValue(true);
+        $('textarea[name="format_desc"]').sceditor('instance').sourceMode(false);
+        $("#desc").val(val);
+    });
+    var index = 0;
+    //    $("#save_step").click(function(){
+    //        var token = "<%= form_authenticity_token %>";
+    //        var data = '{"step":[';
+    //        $(".step_data").each(function(){
+    //            data += '{"article_id":"'+$("#article_id").val()+'"';
+    //            if($(this).hasClass("description")){
+    //               data += ',"type":"description"';
+    //            }else if($(this).hasClass("step")){
+    //                data += ',"type":"step"';
+    //            }
+    //            data += ',"description":"'+escapeHTML($(this).val())+'"}';
+    //            //console.log("index="+index+" len = "+(len-1));
+    //            data += ',';
+    //
+    //        });
+    //        data = data.substr(0,data.length-1);
+    //        //console.log(data);
+    //        data += '],"token":"'+token+'"}';
+    //        console.log(data);
+    //        $.ajax({
+    //            type : 'POST',
+    //            url : '/steps',
+    //            dataType : 'json',
+    //            contentType : "application/json",
+    //            data : data,
+    //            success : function(data) {
+    //                console.log(data);
+    //            }
+    //        });
+    //    });
+    $("#oasis_page_id").change(function(){
+        var value = $(this).val();
+        if(value){
+            $.ajax({
+                type : 'GET',
+                url : '/oases/oases_by_page_id?page_id='+value,
+                dataType : 'json',
+                contentType : "application/json",
+                success : function(data) {
+                    console.log(data);
+                    if(data.length>0){
+                        $("#id").val(data[0]['id']);
+                        var description = data[0]['description'];
+                        console.log(description)
+//                        $('textarea[name="format_desc"]').sceditor('instance').sourceMode(true);
+//                        var val = $('textarea[name="format_desc"]').sceditor('instance').getSourceEditorValue(true);
+                        $('textarea[name="format_desc"]').sceditor('instance').sourceMode(false);
+                        $('textarea[name="format_desc"]').sceditor('instance').val(description, false);
+                    }else{
+                        $('textarea[name="format_desc"]').sceditor('instance').val("", false);
+                    }
+                }
+            });
+        }
+    });
+
+</script>
+
+

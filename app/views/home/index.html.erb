@@ -1,0 +1,38 @@
+<div class="container">
+  <!--left-->
+  <div class="col-sm-9">
+    <% if !@articles.blank? %>
+    <%
+       @articles.each do |a|
+    %>
+        <div class="row">
+          <div class="col-xs-12">
+            <h2><%= a.title %></h2>
+            <p>
+              <%= a.description %>
+            </p>
+            <p class="lead"><a href="/articles/<%= a.id %>" class="btn btn-default">Read More</a></p>
+
+            <p class="pull-right"><span class="label label-default">keyword</span> <span class="label label-default">tag</span> <span class="label label-default">post</span></p>
+            <ul class="list-inline"><li><a href="#">2 Days Ago</a></li><li><a href="#"><i class="glyphicon glyphicon-comment"></i> 2 Comments</a></li><li><a href="#"><i class="glyphicon glyphicon-share"></i> 14 Shares</a></li></ul>
+          </div>
+        </div>
+        <hr>
+    <%
+       end
+    %>
+        <% end %>
+  </div><!--/center-->
+  <!--right-->
+  <div class="col-sm-3">
+    <h2>Side</h2>
+    <div class="panel panel-default">
+      <div class="panel-heading">Title</div>
+      <div class="panel-body">Sed ac orci quis tortor imperdiet venenatis. Duis elementum auctor accumsan.
+        Aliquam in felis sit amet augue.</div>
+    </div>
+    <hr>
+
+  </div><!--/right-->
+  <hr>
+</div><!--/container-fluid-->
